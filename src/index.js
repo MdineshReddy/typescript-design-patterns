@@ -40,11 +40,12 @@ function createDatabase() {
         onAfterAdd(listener) {
             return this.afterAddListeners.subscribe(listener);
         }
+        //visitor
+        visit(visitor) {
+            Object.values(this.db).forEach(visitor);
+        }
     }
     InMemoryDatabase.instance = new InMemoryDatabase();
-    // Singleton
-    // const db = new InMemoryDatabase();
-    // return db;
     return InMemoryDatabase.instance;
 }
 const pokemonDB = createDatabase();
@@ -52,3 +53,6 @@ const unsubscribe = pokemonDB.onAfterAdd(({ value }) => console.log(value));
 pokemonDB.set({ id: "Bulbasour", attack: 50, defense: 10 });
 unsubscribe();
 pokemonDB.set({ id: "Spinosaur", attack: 150, defense: 20 });
+pokemonDB.visit((item) => {
+    console.log(item.id);
+});
