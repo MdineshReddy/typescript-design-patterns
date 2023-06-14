@@ -1,3 +1,5 @@
+import { RecordHandler, loader } from "./loader";
+
 // Observer
 type Listener<EventType> = (ev: EventType) => void;
 
@@ -115,16 +117,16 @@ function createDatabase<T extends BaseRecord>() {
 }
 
 const pokemonDB = createDatabase<Pokemon>();
+
 const unsubscribe = pokemonDB.onAfterAdd(({ value }) => console.log(value));
 
-pokemonDB.set({ id: "Bulbasour", attack: 50, defense: 100 });
+// Adapter Pattern
+class PokemonDBAdapter implements RecordHandler<Pokemon> {
+  addRecord(record: Pokemon): void {
+    pokemonDB.set(record);
+  }
+}
+
+loader("./data.json", new PokemonDBAdapter());
+
 unsubscribe();
-pokemonDB.set({ id: "Spinosaur", attack: 150, defense: 20 });
-
-pokemonDB.visit((item) => {
-  console.log(item.id);
-});
-
-const bestDefensive = pokemonDB.selectBest(({ defense }) => defense);
-const bestAttack = pokemonDB.selectBest(({ attack }) => attack);
-console.log(bestAttack, bestDefensive);
