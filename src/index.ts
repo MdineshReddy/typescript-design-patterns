@@ -87,6 +87,28 @@ function createDatabase<T extends BaseRecord>() {
     public visit(visitor: (item: T) => void): void {
       Object.values(this.db).forEach(visitor);
     }
+
+    // strategy
+    selectBest(scoreStrategy: (item: T) => number): T | undefined {
+      const found: {
+        max: number;
+        item: T | undefined;
+      } = {
+        max: 0,
+        item: undefined,
+      };
+
+      Object.values(this.db).reduce((f, item) => {
+        const score = scoreStrategy(item);
+        if (score > f.max) {
+          f.max = score;
+          f.item = item;
+        }
+        return f;
+      }, found);
+
+      return found.item;
+    }
   }
 
   return InMemoryDatabase.instance;
@@ -95,10 +117,14 @@ function createDatabase<T extends BaseRecord>() {
 const pokemonDB = createDatabase<Pokemon>();
 const unsubscribe = pokemonDB.onAfterAdd(({ value }) => console.log(value));
 
-pokemonDB.set({ id: "Bulbasour", attack: 50, defense: 10 });
+pokemonDB.set({ id: "Bulbasour", attack: 50, defense: 100 });
 unsubscribe();
 pokemonDB.set({ id: "Spinosaur", attack: 150, defense: 20 });
 
 pokemonDB.visit((item) => {
   console.log(item.id);
 });
+
+const bestDefensive = pokemonDB.selectBest(({ defense }) => defense);
+const bestAttack = pokemonDB.selectBest(({ attack }) => attack);
+console.log(bestAttack, bestDefensive);
